@@ -132,8 +132,9 @@ static void touch_handle_up(void *data, struct wl_touch *wl_touch,
 	}
 	wl_list_for_each(notif, &state->notifications, link) {
 		if (hotspot_at(&notif->hotspot, seat->touch.pts[id].x, seat->touch.pts[id].y)) {
+			struct mako_surface *surface = notif->surface;
 			notification_handle_touch(notif);
-			set_dirty(notif->surface);
+			set_dirty(surface);
 			break;
 		}
 	}
