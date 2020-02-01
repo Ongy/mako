@@ -37,6 +37,7 @@ struct mako_style_spec {
 struct mako_style {
 	struct mako_style_spec spec;
 
+	uint32_t anchor;
 	int32_t width;
 	int32_t height;
 	struct mako_directional margin;

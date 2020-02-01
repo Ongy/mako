@@ -19,7 +19,11 @@ static int handle_dismiss_all_notifications(sd_bus_message *msg, void *data,
 	struct mako_state *state = data;
 
 	close_all_notifications(state, MAKO_NOTIFICATION_CLOSE_DISMISSED);
-	set_dirty(state);
+	struct mako_surface *surface;
+
+	wl_list_for_each(surface, &state->surfaces, link) {
+		set_dirty(surface);
+	}
 
 	return sd_bus_reply_method_return(msg, "");
 }
@@ -35,8 +39,9 @@ static int handle_dismiss_group_notifications(sd_bus_message *msg, void *data,
 	struct mako_notification *notif =
 		wl_container_of(state->notifications.next, notif, link);
 
+	struct mako_surface *surface = notif->surface;
 	close_group_notifications(notif, MAKO_NOTIFICATION_CLOSE_DISMISSED);
-	set_dirty(state);
+	set_dirty(surface);
 
 done:
 	return sd_bus_reply_method_return(msg, "");
@@ -53,7 +58,7 @@ static int handle_dismiss_last_notification(sd_bus_message *msg, void *data,
 	struct mako_notification *notif =
 		wl_container_of(state->notifications.next, notif, link);
 	close_notification(notif, MAKO_NOTIFICATION_CLOSE_DISMISSED);
-	set_dirty(state);
+	set_dirty(notif->surface);
 
 done:
 	return sd_bus_reply_method_return(msg, "");
@@ -109,7 +114,7 @@ static int handle_restore_action(sd_bus_message *msg, void *data,
 	wl_list_remove(&notif->link);
 
 	insert_notification(state, notif);
-	set_dirty(state);
+	set_dirty(notif->surface);
 
 done:
 	return sd_bus_reply_method_return(msg, "");
@@ -252,7 +257,10 @@ static void reapply_config(struct mako_state *state) {
 		free(notif_criteria);
 	}
 
-	set_dirty(state);
+	struct mako_surface *surface;
+	wl_list_for_each(surface, &state->surfaces, link) {
+		set_dirty(surface);
+	}
 }
 
 static int handle_reload(sd_bus_message *msg, void *data,

@@ -84,6 +84,31 @@ static void finish(struct mako_state *state) {
 	finish_dbus(state);
 }
 
+static void init_surfaces(struct mako_state *state) {
+	wl_list_init(&state->surfaces);
+	{
+		struct mako_surface *surface = calloc(1, sizeof(*surface));
+
+		surface->name = "(root)";
+		surface->state = state;
+		surface->anchor = 
+			ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+
+		wl_list_insert(&state->surfaces, &surface->link);
+	}
+
+	{
+		struct mako_surface *surface = calloc(1, sizeof(*surface));
+
+		surface->name = "system";
+		surface->state = state;
+		surface->anchor = 
+			ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+
+		wl_list_insert(&state->surfaces, &surface->link);
+	}
+}
+
 static struct mako_event_loop *event_loop = NULL;
 
 int main(int argc, char *argv[]) {
@@ -95,6 +120,8 @@ int main(int argc, char *argv[]) {
 	// This is a bit wasteful, but easier than special-casing the reload.
 	init_default_config(&state.config);
 	int ret = reload_config(&state.config, argc, argv);
+
+	init_surfaces(&state);
 
 	if (ret < 0) {
 		return EXIT_FAILURE;

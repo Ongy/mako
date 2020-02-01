@@ -267,6 +267,10 @@ bool apply_criteria_field(struct mako_criteria *criteria, char *token) {
 			criteria->summary = strdup(value);
 			criteria->spec.summary = true;
 			return true;
+		} else if (strcmp(key, "surface") == 0) {
+			criteria->surface = strdup(value);
+			criteria->spec.surface = true;
+			return true;
 		} else {
 			// TODO: body, once we support regex and they're useful.
 			// Anything left must be one of the boolean fields, defined using
@@ -335,6 +339,22 @@ ssize_t apply_each_criteria(struct wl_list *criteria_list,
 		if (!apply_style(&notif->style, &criteria->style)) {
 			return -1;
 		}
+
+		if (criteria->spec.surface) {
+			struct mako_surface *surface;
+			wl_list_for_each(surface, &notif->state->surfaces, link) {
+				if (!strcmp(surface->name, criteria->surface)) {
+					surface->anchor = criteria->style.anchor;
+					notif->surface = surface;
+					break;
+				}
+			}
+		}
+
+	}
+
+	if (!notif->surface) {
+		notif->surface = (struct mako_surface *)notif->state->surfaces.prev;
 	}
 
 	return match_count;

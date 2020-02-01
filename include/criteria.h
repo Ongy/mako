@@ -19,6 +19,9 @@ struct mako_criteria {
 	// Style to apply to matches:
 	struct mako_style style;
 
+	// Surface to use for matches:
+	char *surface;
+
 	// Fields that can be matched:
 	char *app_name;
 	char *app_icon;
