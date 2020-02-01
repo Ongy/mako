@@ -156,8 +156,9 @@ static void pointer_handle_button(void *data, struct wl_pointer *wl_pointer,
 	struct mako_notification *notif;
 	wl_list_for_each(notif, &state->notifications, link) {
 		if (hotspot_at(&notif->hotspot, seat->pointer.x, seat->pointer.y)) {
+			struct mako_surface *surface = notif->surface;
 			notification_handle_button(notif, button, button_state);
-			set_dirty(notif->surface);
+			set_dirty(surface);
 			break;
 		}
 	}
