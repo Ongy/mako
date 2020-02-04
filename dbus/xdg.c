@@ -75,10 +75,11 @@ static int handle_get_capabilities(sd_bus_message *msg, void *data,
 
 static void handle_notification_timer(void *data) {
 	struct mako_notification *notif = data;
+	struct mako_surface *surface = notif->surface;
 	notif->timer = NULL;
 
 	close_notification(notif, MAKO_NOTIFICATION_CLOSE_EXPIRED);
-	set_dirty(notif->surface);
+	set_dirty(surface);
 }
 
 static int handle_notify(sd_bus_message *msg, void *data,
