@@ -386,8 +386,9 @@ bool init_wayland(struct mako_state *state) {
 		}
 		wl_display_roundtrip(state->display);
 	}
-	if (state->xdg_output_manager == NULL &&
-			strcmp(state->config.output, "") != 0) {
+	if (state->xdg_output_manager == NULL) { 
+			//XXX: Check all surfaces
+			//strcmp(state->config.output, "") != 0) {
 		fprintf(stderr, "warning: configured an output but compositor doesn't "
 			"support xdg-output-unstable-v1 version 2\n");
 	}
@@ -445,14 +446,14 @@ static struct wl_region *get_input_region(struct mako_surface *surface) {
 	return region;
 }
 
-static struct mako_output *get_configured_output(struct mako_state *state) {
-	const char *output_name = state->config.output;
+static struct mako_output *get_configured_output(struct mako_surface *surface) {
+	const char *output_name = surface->config->output;
 	if (strcmp(output_name, "") == 0) {
 		return NULL;
 	}
 
 	struct mako_output *output;
-	wl_list_for_each(output, &state->outputs, link) {
+	wl_list_for_each(output, &surface->state->outputs, link) {
 		if (output->name != NULL && strcmp(output->name, output_name) == 0) {
 			return output;
 		}
@@ -480,7 +481,7 @@ static void send_frame(struct mako_surface *surface) {
 		return;
 	}
 
-	struct mako_output *output = get_configured_output(state);
+	struct mako_output *output = get_configured_output(surface);
 	int height = render(state, surface, surface->current_buffer, scale);
 
 	// There are two cases where we want to tear down the surface: zero
@@ -521,7 +522,7 @@ static void send_frame(struct mako_surface *surface) {
 
 		surface->layer_surface = zwlr_layer_shell_v1_get_layer_surface(
 			state->layer_shell, surface->surface, wl_output,
-			state->config.layer, "notifications");
+			surface->config->layer, "notifications");
 		zwlr_layer_surface_v1_add_listener(surface->layer_surface,
 			&layer_surface_listener, surface);
 
@@ -548,7 +549,7 @@ static void send_frame(struct mako_surface *surface) {
 				style->width + style->margin.left + style->margin.right,
 				height);
 		zwlr_layer_surface_v1_set_anchor(surface->layer_surface,
-				surface->anchor);
+				surface->config->anchor);
 				//state->config.anchor);
 		wl_surface_commit(surface->surface);
 

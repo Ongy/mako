@@ -16,6 +16,7 @@
 #include "xdg-output-unstable-v1-client-protocol.h"
 
 struct mako_state;
+struct mako_surface_config;
 
 struct mako_surface {
 	struct wl_list link;
@@ -23,7 +24,7 @@ struct mako_surface {
 	struct mako_state *state;
 	char *name;
 
-	uint32_t anchor;
+	struct mako_surface_config *config;
 
 	struct wl_surface *surface;
 	struct mako_output *surface_output;

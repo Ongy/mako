@@ -84,27 +84,17 @@ static void finish(struct mako_state *state) {
 	finish_dbus(state);
 }
 
-static void init_surfaces(struct mako_state *state) {
+static void init_surfaces(struct mako_state *state)
+{
 	wl_list_init(&state->surfaces);
-	{
+	struct mako_surface_config *config;
+	wl_list_for_each(config, &state->config.surfaces, link) {
 		struct mako_surface *surface = calloc(1, sizeof(*surface));
 
-		surface->name = "(root)";
+		surface->config = config;
+		surface->name = config->name;
 		surface->state = state;
-		surface->anchor = 
-			ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-
-		wl_list_insert(&state->surfaces, &surface->link);
-	}
-
-	{
-		struct mako_surface *surface = calloc(1, sizeof(*surface));
-
-		surface->name = "system";
-		surface->state = state;
-		surface->anchor = 
-			ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-
+		
 		wl_list_insert(&state->surfaces, &surface->link);
 	}
 }
@@ -121,8 +111,6 @@ int main(int argc, char *argv[]) {
 	init_default_config(&state.config);
 	int ret = reload_config(&state.config, argc, argv);
 
-	init_surfaces(&state);
-
 	if (ret < 0) {
 		return EXIT_FAILURE;
 	} else if (ret > 0) {
@@ -136,6 +124,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	event_loop = &state.event_loop;
+
+	init_surfaces(&state);
 
 	ret = run_event_loop(&state.event_loop);
 

@@ -344,7 +344,6 @@ ssize_t apply_each_criteria(struct wl_list *criteria_list,
 			struct mako_surface *surface;
 			wl_list_for_each(surface, &notif->state->surfaces, link) {
 				if (!strcmp(surface->name, criteria->surface)) {
-					surface->anchor = criteria->style.anchor;
 					notif->surface = surface;
 					break;
 				}

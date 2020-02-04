@@ -37,7 +37,6 @@ struct mako_style_spec {
 struct mako_style {
 	struct mako_style_spec spec;
 
-	uint32_t anchor;
 	int32_t width;
 	int32_t height;
 	struct mako_directional margin;
@@ -70,14 +69,21 @@ struct mako_style {
 	bool history;
 };
 
-struct mako_config {
-	struct wl_list criteria; // mako_criteria::link
+struct mako_surface_config {
+	struct wl_list link;
 
+	char *name;
 	int32_t max_visible;
 	int32_t max_history;
 	char *output;
 	enum zwlr_layer_shell_v1_layer layer;
 	uint32_t anchor;
+};
+
+struct mako_config {
+	struct wl_list criteria; // mako_criteria::link
+	struct wl_list surfaces; // mako_surface_config::link
+
 	uint32_t sort_criteria; //enum mako_sort_criteria
 	uint32_t sort_asc;
 

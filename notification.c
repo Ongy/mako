@@ -107,7 +107,7 @@ void close_notification(struct mako_notification *notif,
 	}
 
 	if (!notif->style.history ||
-		notif->state->config.max_history <= 0) {
+		notif->surface->config->max_history <= 0) {
 		destroy_notification(notif);
 		return;
 	}
@@ -117,7 +117,7 @@ void close_notification(struct mako_notification *notif,
 
 	wl_list_insert(&notif->state->history, &notif->link);
 	while (wl_list_length(&notif->state->history) >
-		notif->state->config.max_history) {
+		notif->surface->config->max_history) {
 		struct mako_notification *n =
 			wl_container_of(notif->state->history.prev, n, link);
 		destroy_notification(n);
