@@ -14,6 +14,7 @@
 #include "types.h"
 
 static struct mako_surface_config *create_surface(struct mako_config *config);
+static void free_surface_config(struct mako_surface_config *surface);
 
 static int32_t max(int32_t a, int32_t b) {
 	return (a > b) ? a : b;
@@ -55,12 +56,6 @@ void init_default_config(struct mako_config *config) {
 	config->hidden_style.spec.format = true;
 
 	new_surface->name = strdup("(root)");
-	new_surface->output = strdup("");
-	new_surface->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-	new_surface->max_visible = 5;
-
-	new_surface->anchor =
-		ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 
 	new_surface->max_visible = 5;
 	new_surface->max_history = 5;
@@ -84,10 +79,7 @@ void finish_config(struct mako_config *config) {
 
 	struct mako_surface_config *surface, *stmp;
 	wl_list_for_each_safe(surface, stmp, &config->surfaces, link) {
-		free(surface->output);
-		free(surface->name);
-		wl_list_remove(&surface->link);
-		free(surface);
+		free_surface_config(surface);
 	}
 }
 
@@ -616,6 +608,14 @@ static char *get_config_path(void) {
 	return NULL;
 }
 
+static void free_surface_config(struct mako_surface_config *surface) {
+	wl_list_remove(&surface->link);
+	free(surface->output);
+	free(surface->name);
+
+	free(surface);
+}
+
 static struct mako_surface_config *create_surface(struct mako_config *config) {
 	struct mako_surface_config *ret = calloc(1, sizeof(*ret));
 	if (!ret) {
@@ -684,7 +684,7 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 			section = strndup(line + 1, strlen(line) - 2);
 			surface = create_surface(config);
 
-			surface->name = section;
+			surface->name = strdup(section);
 			continue;
 		}
 

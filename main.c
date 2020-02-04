@@ -71,6 +71,11 @@ static bool init(struct mako_state *state) {
 	return true;
 }
 
+static void destroy_surface(struct mako_surface *surface) {
+	wl_list_remove(&surface->link);
+	free(surface);
+}
+
 static void finish(struct mako_state *state) {
 	struct mako_notification *notif, *tmp;
 	wl_list_for_each_safe(notif, tmp, &state->notifications, link) {
@@ -78,6 +83,11 @@ static void finish(struct mako_state *state) {
 	}
 	wl_list_for_each_safe(notif, tmp, &state->history, link) {
 		destroy_notification(notif);
+	}
+
+	struct mako_surface *surface, *stmp;
+	wl_list_for_each_safe(surface, stmp, &state->surfaces, link) {
+		destroy_surface(surface);
 	}
 	finish_event_loop(&state->event_loop);
 	finish_wayland(state);
