@@ -74,7 +74,6 @@ struct mako_surface_config {
 
 	char *name;
 	int32_t max_visible;
-	int32_t max_history;
 	char *output;
 	enum zwlr_layer_shell_v1_layer layer;
 	uint32_t anchor;
@@ -86,6 +85,7 @@ struct mako_config {
 
 	uint32_t sort_criteria; //enum mako_sort_criteria
 	uint32_t sort_asc;
+	int32_t max_history;
 
 	struct mako_style hidden_style;
 	struct mako_style superstyle;

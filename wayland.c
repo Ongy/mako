@@ -394,6 +394,7 @@ bool init_wayland(struct mako_state *state) {
 				fprintf(stderr, "warning: configured an output "
 					"but compositor doesn't support "
 					"xdg-output-unstable-v1 version 2\n");
+				break;
 			}
 		}
 	}
@@ -547,7 +548,6 @@ static void send_frame(struct mako_surface *surface) {
 				height);
 		zwlr_layer_surface_v1_set_anchor(surface->layer_surface,
 				surface->config->anchor);
-				//state->config.anchor);
 		wl_surface_commit(surface->surface);
 
 		// Now we're going to bail without drawing anything. This gives the

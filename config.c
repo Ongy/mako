@@ -13,7 +13,8 @@
 #include "criteria.h"
 #include "types.h"
 
-static struct mako_surface_config *create_surface(struct mako_config *config) {
+static struct mako_surface_config *create_surface_config(
+		struct mako_config *config) {
 	struct mako_surface_config *ret = calloc(1, sizeof(*ret));
 	if (!ret) {
 		return NULL;
@@ -39,7 +40,7 @@ void init_default_config(struct mako_config *config) {
 	wl_list_init(&config->criteria);
 	wl_list_init(&config->surfaces);
 	struct mako_criteria *new_criteria = create_criteria(config);
-	struct mako_surface_config *new_surface = create_surface(config);
+	struct mako_surface_config *new_surface = create_surface_config(config);
 	init_default_style(&new_criteria->style);
 	new_criteria->raw_string = strdup("(root)");
 
@@ -73,7 +74,7 @@ void init_default_config(struct mako_config *config) {
 	new_surface->name = strdup("(root)");
 
 	new_surface->max_visible = 5;
-	new_surface->max_history = 5;
+	config->max_history = 5;
 	config->sort_criteria = MAKO_SORT_CRITERIA_TIME;
 	config->sort_asc = 0;
 
@@ -83,7 +84,7 @@ void init_default_config(struct mako_config *config) {
 	config->touch = MAKO_BINDING_DISMISS;
 }
 
-static void free_surface_config(struct mako_surface_config *surface) {
+static void destroy_surface_config(struct mako_surface_config *surface) {
 	wl_list_remove(&surface->link);
 	free(surface->output);
 	free(surface->name);
@@ -102,7 +103,7 @@ void finish_config(struct mako_config *config) {
 
 	struct mako_surface_config *surface, *stmp;
 	wl_list_for_each_safe(surface, stmp, &config->surfaces, link) {
-		free_surface_config(surface);
+		destroy_surface_config(surface);
 	}
 }
 
@@ -408,8 +409,6 @@ static bool apply_surface_option(struct mako_surface_config *surface,
 		const char *name, const char *value) {
 	if (strcmp(name, "max-visible") == 0) {
 		return parse_int(value, &surface->max_visible);
-	} else if (strcmp(name, "max-history") == 0) {
-		return parse_int(value, &surface->max_visible);
 	} else if (strcmp(name, "output") == 0) {
 		free(surface->output);
 		surface->output = strdup(value);
@@ -506,6 +505,8 @@ static bool apply_config_option(struct mako_config *config, const char *name,
 			return false;
 		}
 		return true;
+	} else if (strcmp(name, "max-history") == 0) {
+		return parse_int(value, &config->max_history);
 	}
 
 	return false;
@@ -679,7 +680,7 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 		if (line[0] == '{' && line[strlen(line) - 1] == '}') {
 			free(section);
 			section = strndup(line + 1, strlen(line) - 2);
-			surface = create_surface(config);
+			surface = create_surface_config(config);
 
 			surface->name = strdup(section);
 			continue;
