@@ -8,6 +8,7 @@
 #include "mako.h"
 #include "notification.h"
 #include "render.h"
+#include "surface.h"
 #include "wayland.h"
 
 static void noop() {
@@ -403,17 +404,7 @@ bool init_wayland(struct mako_state *state) {
 void finish_wayland(struct mako_state *state) {
 	struct mako_surface *surface, *stmp;
 	wl_list_for_each_safe(surface, stmp, &state->surfaces, link) {
-		if (surface->layer_surface != NULL) {
-			zwlr_layer_surface_v1_destroy(surface->layer_surface);
-		}
-		if (surface->surface != NULL) {
-			wl_surface_destroy(surface->surface);
-		}
-		finish_buffer(&surface->buffers[0]);
-		finish_buffer(&surface->buffers[1]);
-
-		wl_list_remove(&surface->link);
-		free(surface);
+		destroy_surface(surface);
 	}
 
 	struct mako_output *output, *output_tmp;

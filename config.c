@@ -13,8 +13,23 @@
 #include "criteria.h"
 #include "types.h"
 
-static struct mako_surface_config *create_surface(struct mako_config *config);
-static void free_surface_config(struct mako_surface_config *surface);
+static struct mako_surface_config *create_surface(struct mako_config *config) {
+	struct mako_surface_config *ret = calloc(1, sizeof(*ret));
+	if (!ret) {
+		return NULL;
+	}
+
+	wl_list_insert(config->surfaces.prev, &ret->link);
+
+	ret->output = strdup("");
+	ret->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+	ret->max_visible = 5;
+
+	ret->anchor =
+		ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+
+	return ret;
+}
 
 static int32_t max(int32_t a, int32_t b) {
 	return (a > b) ? a : b;
@@ -66,6 +81,14 @@ void init_default_config(struct mako_config *config) {
 	config->button_bindings.right = MAKO_BINDING_DISMISS;
 	config->button_bindings.middle = MAKO_BINDING_NONE;
 	config->touch = MAKO_BINDING_DISMISS;
+}
+
+static void free_surface_config(struct mako_surface_config *surface) {
+	wl_list_remove(&surface->link);
+	free(surface->output);
+	free(surface->name);
+
+	free(surface);
 }
 
 void finish_config(struct mako_config *config) {
@@ -606,32 +629,6 @@ static char *get_config_path(void) {
 	}
 
 	return NULL;
-}
-
-static void free_surface_config(struct mako_surface_config *surface) {
-	wl_list_remove(&surface->link);
-	free(surface->output);
-	free(surface->name);
-
-	free(surface);
-}
-
-static struct mako_surface_config *create_surface(struct mako_config *config) {
-	struct mako_surface_config *ret = calloc(1, sizeof(*ret));
-	if (!ret) {
-		return NULL;
-	}
-
-	wl_list_insert(config->surfaces.prev, &ret->link);
-
-	ret->output = strdup("");
-	ret->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-	ret->max_visible = 5;
-
-	ret->anchor =
-		ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-
-	return ret;
 }
 
 int load_config_file(struct mako_config *config, char *config_arg) {

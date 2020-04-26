@@ -9,6 +9,7 @@
 #include "mako.h"
 #include "notification.h"
 #include "render.h"
+#include "surface.h"
 #include "wayland.h"
 
 static const char usage[] =
@@ -71,11 +72,6 @@ static bool init(struct mako_state *state) {
 	return true;
 }
 
-static void destroy_surface(struct mako_surface *surface) {
-	wl_list_remove(&surface->link);
-	free(surface);
-}
-
 static void finish(struct mako_state *state) {
 	struct mako_notification *notif, *tmp;
 	wl_list_for_each_safe(notif, tmp, &state->notifications, link) {
@@ -99,13 +95,8 @@ static void init_surfaces(struct mako_state *state)
 	wl_list_init(&state->surfaces);
 	struct mako_surface_config *config;
 	wl_list_for_each(config, &state->config.surfaces, link) {
-		struct mako_surface *surface = calloc(1, sizeof(*surface));
-
-		surface->config = config;
-		surface->name = config->name;
-		surface->state = state;
-
-		wl_list_insert(&state->surfaces, &surface->link);
+		/* We don't need the return value right now */
+		create_surface(state, config);
 	}
 }
 
