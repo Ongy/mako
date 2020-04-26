@@ -736,7 +736,7 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 		if (!valid_option && section == NULL) {
 			valid_option = apply_config_option(config, line, eq + 1);
 		}
-		
+
 
 		if (!valid_option) {
 			fprintf(stderr, "[%s:%d] Failed to parse option '%s'\n",

@@ -386,20 +386,23 @@ bool init_wayland(struct mako_state *state) {
 		}
 		wl_display_roundtrip(state->display);
 	}
-	if (state->xdg_output_manager == NULL) { 
-			//XXX: Check all surfaces
-			//strcmp(state->config.output, "") != 0) {
-		fprintf(stderr, "warning: configured an output but compositor doesn't "
-			"support xdg-output-unstable-v1 version 2\n");
+	if (state->xdg_output_manager == NULL) {
+		struct mako_surface *surface;
+		wl_list_for_each(surface, &state->surfaces, link) {
+			if (strcmp(surface->config->output, "") != 0) {
+				fprintf(stderr, "warning: configured an output "
+					"but compositor doesn't support "
+					"xdg-output-unstable-v1 version 2\n");
+			}
+		}
 	}
 
 	return true;
 }
 
 void finish_wayland(struct mako_state *state) {
-	struct mako_surface *surface;
-	wl_list_for_each(surface, &state->surfaces, link) {
-		// XXX: use _safe and free the surfaces!
+	struct mako_surface *surface, *stmp;
+	wl_list_for_each_safe(surface, stmp, &state->surfaces, link) {
 		if (surface->layer_surface != NULL) {
 			zwlr_layer_surface_v1_destroy(surface->layer_surface);
 		}
@@ -408,6 +411,9 @@ void finish_wayland(struct mako_state *state) {
 		}
 		finish_buffer(&surface->buffers[0]);
 		finish_buffer(&surface->buffers[1]);
+
+		wl_list_remove(&surface->link);
+		free(surface);
 	}
 
 	struct mako_output *output, *output_tmp;
@@ -467,7 +473,7 @@ static void schedule_frame_and_commit(struct mako_surface *surface);
 // Draw and commit a new frame.
 static void send_frame(struct mako_surface *surface) {
 	struct mako_state *state = surface->state;
-	// XXX: Decide on how to handle this one
+
 	int scale = 1;
 	if (surface->surface_output != NULL) {
 		scale = surface->surface_output->scale;

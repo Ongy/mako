@@ -56,7 +56,7 @@ struct mako_state {
 	struct wl_list outputs; // mako_output::link
 	struct wl_list seats; // mako_seat::link
 
-	struct wl_list surfaces; // mako_surface::link 
+	struct wl_list surfaces; // mako_surface::link
 //	struct wl_surface *surface;
 //	struct mako_output *surface_output;
 //	struct zwlr_layer_surface_v1 *layer_surface;

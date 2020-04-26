@@ -104,7 +104,7 @@ static void init_surfaces(struct mako_state *state)
 		surface->config = config;
 		surface->name = config->name;
 		surface->state = state;
-		
+
 		wl_list_insert(&state->surfaces, &surface->link);
 	}
 }
