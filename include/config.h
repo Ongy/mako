@@ -26,8 +26,8 @@ enum mako_sort_criteria {
 struct mako_style_spec {
 	bool width, height, margin, padding, border_size, border_radius, font,
 		markup, format, actions, default_timeout, ignore_timeout, icons,
-		max_icon_size, icon_path, group_criteria_spec, invisible, history;
-
+		max_icon_size, icon_path, group_criteria_spec, invisible, history,
+		surface;
 	struct {
 		bool background, text, border, progress;
 	} colors;
@@ -67,6 +67,8 @@ struct mako_style {
 
 	bool invisible; // Skipped during render, doesn't count toward max_visible
 	bool history;
+
+	char *surface;
 };
 
 struct mako_surface_config {

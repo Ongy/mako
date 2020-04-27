@@ -149,6 +149,7 @@ void init_default_style(struct mako_style *style) {
 	style->group_criteria_spec.none = true;
 	style->invisible = false;
 	style->history = true;
+	style->surface = strdup("");
 
 	// Everything in the default config is explicitly specified.
 	memset(&style->spec, true, sizeof(struct mako_style_spec));
@@ -162,6 +163,7 @@ void finish_style(struct mako_style *style) {
 	free(style->icon_path);
 	free(style->font);
 	free(style->format);
+	free(style->surface);
 }
 
 // Update `target` with the values specified in `style`. If a failure occurs,
@@ -172,6 +174,7 @@ bool apply_style(struct mako_style *target, const struct mako_style *style) {
 	char *new_font = NULL;
 	char *new_format = NULL;
 	char *new_icon_path = NULL;
+	char *new_surface = NULL;
 
 	if (style->spec.font) {
 		new_font = strdup(style->font);
@@ -195,6 +198,17 @@ bool apply_style(struct mako_style *target, const struct mako_style *style) {
 		if (new_icon_path == NULL) {
 			free(new_format);
 			free(new_font);
+			fprintf(stderr, "allocation failed\n");
+			return false;
+		}
+	}
+
+	if (style->spec.surface) {
+		new_surface = strdup(style->surface);
+		if (new_surface == NULL) {
+			free(new_format);
+			free(new_font);
+			free(new_icon_path);
 			fprintf(stderr, "allocation failed\n");
 			return false;
 		}
@@ -313,6 +327,12 @@ bool apply_style(struct mako_style *target, const struct mako_style *style) {
 	if (style->border_radius) {
 		target->border_radius = style->border_radius;
 		target->spec.border_radius = true;
+	}
+
+	if (style->spec.surface) {
+		free(target->surface);
+		target->surface = new_surface;
+		target->spec.surface = true;
 	}
 
 	return true;
@@ -584,6 +604,9 @@ static bool apply_style_option(struct mako_style *style, const char *name,
 			style->padding.right = max(style->border_radius, style->padding.right);
 		}
 		return spec->border_radius;
+	} else if (strcmp(name, "surface") == 0) {
+		free(style->surface);
+		return spec->surface = !!(style->surface = strdup(value));
 	}
 
 	return false;
@@ -775,6 +798,7 @@ int parse_config_arguments(struct mako_config *config, int argc, char **argv) {
 		{"max-visible", required_argument, 0, 0},
 		{"max-history", required_argument, 0, 0},
 		{"history", required_argument, 0, 0},
+		{"surface", required_argument, 0, 0},
 		{"default-timeout", required_argument, 0, 0},
 		{"ignore-timeout", required_argument, 0, 0},
 		{"output", required_argument, 0, 0},
