@@ -16,12 +16,6 @@ Empty lines and lines that begin with # are ignored.
 
 # GLOBAL CONFIGURATION OPTIONS
 
-*max-visible* = _n_
-	Set maximum number of visible notifications to _n_. Older notifications will
-	be hidden. If -1, all notifications are visible.
-
-	Default: 5
-
 *max-history* = _n_
 	Set maximum number of expired notifications to keep in the history
 	buffer to _n_. If the buffer is full, newly expired notifications
@@ -34,6 +28,14 @@ Empty lines and lines that begin with # are ignored.
 	or descending(-) order.
 
 	Default: -time
+
+# SURFACE OPTIONS
+
+*max-visible* = _n_
+	Set maximum number of visible notifications to _n_. Older notifications will
+	be hidden. If -1, all notifications are visible.
+
+	Default: 5
 
 *output* = _name_
 	Show notifications on the specified output. If empty, notifications will
@@ -205,8 +207,7 @@ _none_, _dismiss_, _dismiss-all_, _dismiss-group_, _invoke-default-action_,
 
 *group-by* = _field[,field,...]_
 	A comma-separated list of criteria fields that will be compared to other
-	visible notifications to determine if this one should form a group with
-	them. All listed criteria must be exactly equal for two notifications to
+	visible notifications to determine if this one should form a group with them. All listed criteria must be exactly equal for two notifications to
 	group.
 
 	Default: none
@@ -289,6 +290,29 @@ associated command-line option.
 
 	Default: 0
 
+*surface* = _surface_
+	The surface style option is used to pick the surface the notification
+	will be shown on.
+	Surfaces need to be configured in your mako configuration. If no surface
+	or a non existing surface is configured for a notification, it will be
+	shown on the default surface.
+
+	Default: ""
+
+# SURFACES
+
+In addition to the set of options at the top of the file, the config file may
+contain zero or more sections, each containing any combination of the
+*SURFACE OPTIONS*. The sections, called surfaces, are defined with a squiggly
+square bracket syntax. The brackets contain the name of the surface:
+
+	\{internal\}
+
+When a notification is received, during style computation, the surface for the
+notification is computed as well. If there's no valid surface configured, the
+default surface is chosen. The default surface can be configured by using any
+*SURFACE OPTIONS* before a surface section is openend.
+
 # COLORS
 
 Colors can be specified as _#RRGGBB_ or _#RRGGBBAA_.
@@ -343,6 +367,22 @@ specifiers.
 Maintained by Simon Ser <contact@emersion.fr>, who is assisted by other
 open-source contributors. For more information about mako development, see
 https://github.com/emersion/mako.
+
+# EXAMPLES
+
+## Configuration with system settings placed onto their own surface
+
+\{system\}++
+anchor=bottom-center++
+++
+\[category=system\]++
+surface=system++
+background-color=#28557780++
+margin=0,0,250++
+width=120++
+text-color=#efefef++
+border-radius=20
+
 
 # SEE ALSO
 
