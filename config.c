@@ -149,7 +149,13 @@ void init_default_style(struct mako_style *style) {
 	style->group_criteria_spec.none = true;
 	style->invisible = false;
 	style->history = true;
-	style->surface = strdup("");
+
+	style->output = strdup("");
+	style->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+	style->max_visible = 5;
+
+	style->anchor =
+		ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 
 	// Everything in the default config is explicitly specified.
 	memset(&style->spec, true, sizeof(struct mako_style_spec));
@@ -163,7 +169,7 @@ void finish_style(struct mako_style *style) {
 	free(style->icon_path);
 	free(style->font);
 	free(style->format);
-	free(style->surface);
+	free(style->output);
 }
 
 // Update `target` with the values specified in `style`. If a failure occurs,
@@ -174,7 +180,7 @@ bool apply_style(struct mako_style *target, const struct mako_style *style) {
 	char *new_font = NULL;
 	char *new_format = NULL;
 	char *new_icon_path = NULL;
-	char *new_surface = NULL;
+	char *new_output = NULL;
 
 	if (style->spec.font) {
 		new_font = strdup(style->font);
@@ -203,9 +209,9 @@ bool apply_style(struct mako_style *target, const struct mako_style *style) {
 		}
 	}
 
-	if (style->spec.surface) {
-		new_surface = strdup(style->surface);
-		if (new_surface == NULL) {
+	if (style->spec.output) {
+		new_output = strdup(style->output);
+		if (new_output == NULL) {
 			free(new_format);
 			free(new_font);
 			free(new_icon_path);
@@ -329,10 +335,25 @@ bool apply_style(struct mako_style *target, const struct mako_style *style) {
 		target->spec.border_radius = true;
 	}
 
-	if (style->spec.surface) {
-		free(target->surface);
-		target->surface = new_surface;
-		target->spec.surface = true;
+	if (style->spec.output) {
+		free(target->output);
+		target->output = new_output;
+		target->spec.output = true;
+	}
+
+	if (style->spec.anchor) {
+		target->anchor = style->anchor;
+		target->spec.anchor = true;
+	}
+
+	if (style->spec.layer) {
+		target->layer = style->layer;
+		target->spec.layer = true;
+	}
+
+	if (style->spec.max_visible) {
+		target->max_visible = style->max_visible;
+		target->spec.max_visible = true;
 	}
 
 	return true;
@@ -425,13 +446,14 @@ bool apply_superset_style(
 	return true;
 }
 
-static bool apply_surface_option(struct mako_surface_config *surface,
+static bool apply_surface_option(struct mako_style *surface,
 		const char *name, const char *value) {
 	if (strcmp(name, "max-visible") == 0) {
-		return parse_int(value, &surface->max_visible);
+		return surface->spec.max_visible = parse_int(value, &surface->max_visible);
 	} else if (strcmp(name, "output") == 0) {
 		free(surface->output);
 		surface->output = strdup(value);
+		surface->spec.output = true;
 		return true;
 	} else if (strcmp(name, "layer") == 0) {
 		if (strcmp(value, "background") == 0) {
@@ -445,6 +467,7 @@ static bool apply_surface_option(struct mako_surface_config *surface,
 		} else {
 			return false;
 		}
+		surface->spec.layer = true;
 		return true;
 	} else if (strcmp(name, "anchor") == 0) {
 		if (strcmp(value, "top-right") == 0) {
@@ -468,6 +491,7 @@ static bool apply_surface_option(struct mako_surface_config *surface,
 		} else {
 			return false;
 		}
+		surface->spec.anchor = true;
 		return true;
 	}
 
@@ -604,10 +628,10 @@ static bool apply_style_option(struct mako_style *style, const char *name,
 			style->padding.right = max(style->border_radius, style->padding.right);
 		}
 		return spec->border_radius;
-	} else if (strcmp(name, "surface") == 0) {
+	} /*else if (strcmp(name, "surface") == 0) {
 		free(style->surface);
 		return spec->surface = !!(style->surface = strdup(value));
-	}
+	} */
 
 	return false;
 }
@@ -684,11 +708,6 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 	struct mako_criteria *criteria =
 		wl_container_of(config->criteria.next, criteria, link);
 
-	// Until we hit the first surface section, we want to be modifying the
-	// base surface. We know it's always the first one in the list.
-	struct mako_surface_config *surface =
-		wl_container_of(config->surfaces.next, surface, link);
-
 	size_t n = 0;
 	while (getline(&line, &n, f) > 0) {
 		++lineno;
@@ -698,15 +717,6 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 
 		if (line[strlen(line) - 1] == '\n') {
 			line[strlen(line) - 1] = '\0';
-		}
-
-		if (line[0] == '{' && line[strlen(line) - 1] == '}') {
-			free(section);
-			section = strndup(line + 1, strlen(line) - 2);
-			surface = create_surface_config(config);
-
-			surface->name = strdup(section);
-			continue;
 		}
 
 		if (line[0] == '[' && line[strlen(line) - 1] == ']') {
@@ -751,7 +761,7 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 		valid_option = apply_style_option(target_style, line, eq + 1);
 
 		if (!valid_option) {
-			valid_option = apply_surface_option(surface, line, eq + 1);
+			valid_option = apply_surface_option(target_style, line, eq + 1);
 		}
 
 		if (!valid_option && section == NULL) {
@@ -772,6 +782,70 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 	fclose(f);
 	free(path);
 	return ret;
+}
+
+static int build_surface_config_final(struct mako_config *config,
+		struct mako_style *style)
+{
+	char surface_name[64];
+	snprintf(surface_name, sizeof(surface_name), "%s%d%d",
+			style->output, style->layer, style->anchor);
+
+	struct mako_surface_config *surface;
+	wl_list_for_each(surface, &config->surfaces, link) {
+		if (!strcmp(surface->name, surface_name)) {
+			return 0;
+		}
+	}
+
+	surface = calloc(1, sizeof(*surface));
+
+	wl_list_insert(&config->surfaces, &surface->link);
+	surface->name = strdup(surface_name);
+	surface->output = strdup(style->output);
+	surface->layer = style->layer;
+	surface->anchor = style->anchor;
+	surface->max_visible = style->max_visible;
+
+	return 0;
+}
+
+static int build_surface_configs(struct mako_config *config,
+		struct mako_style *style, struct mako_criteria *criteria)
+{
+	struct mako_criteria *next =
+		wl_container_of(criteria->link.next, criteria, link);
+	// Stop condition!
+	if (&criteria->link == &config->criteria) {
+		return build_surface_config_final(config, style);
+	}
+
+	struct mako_style applied;
+	memset(&applied, 0, sizeof(applied));
+	// First make a copy of the passed in style
+	apply_style(&applied, style);
+	// Then apply our current one
+	apply_style(&applied, &criteria->style);
+
+	// Build the surface that might show up if we apply this style
+	build_surface_configs(config, &applied, next);
+	// Build the surface that might show up if we do not apply this style
+	build_surface_configs(config, style, next);
+
+	finish_style(&applied);
+	return 0;
+}
+
+static int build_surface_config(struct mako_config *config)
+{
+	struct mako_criteria *criteria =
+		wl_container_of(config->criteria.next, criteria, link);
+	struct mako_style style;
+
+	init_default_style(&style);
+	build_surface_configs(config, &style, criteria);
+	finish_style(&style);
+	return 0;
 }
 
 int parse_config_arguments(struct mako_config *config, int argc, char **argv) {
@@ -853,7 +927,7 @@ int parse_config_arguments(struct mako_config *config, int argc, char **argv) {
 		}
 	}
 
-	return 0;
+	return build_surface_config(config);
 }
 
 // Returns zero on success, negative on error, positive if we should exit

@@ -337,10 +337,13 @@ ssize_t apply_each_criteria(struct wl_list *criteria_list,
 		}
 	}
 
+	char surface_name[64];
+	snprintf(surface_name, sizeof(surface_name), "%s%d%d",
+			notif->style.output, notif->style.layer, notif->style.anchor);
 
 	struct mako_surface *surface;
 	wl_list_for_each(surface, &notif->state->surfaces, link) {
-		if (!strcmp(surface->name, notif->style.surface)) {
+		if (!strcmp(surface->name, surface_name)) {
 			notif->surface = surface;
 			break;
 		}
