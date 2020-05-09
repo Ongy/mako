@@ -32,6 +32,27 @@ static struct mako_surface_config *create_surface_config(
 	return ret;
 }
 
+struct mako_surface_config *create_configured_surface_config(
+		struct mako_config *config, int32_t max_visible,
+		char *output, enum zwlr_layer_shell_v1_layer layer,
+		uint32_t anchor, const char *name)
+{
+	struct mako_surface_config *ret = create_surface_config(config);
+	if (!ret) {
+		return NULL;
+	}
+
+	free(ret->output);
+	free(ret->name);
+	ret->max_visible = max_visible;
+	ret->output = strdup(output);
+	ret->layer = layer;
+	ret->anchor = anchor;
+	ret->name = strdup(name);
+
+	return ret;
+}
+
 static int32_t max(int32_t a, int32_t b) {
 	return (a > b) ? a : b;
 }
@@ -784,70 +805,6 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 	return ret;
 }
 
-static int build_surface_config_final(struct mako_config *config,
-		struct mako_style *style)
-{
-	char surface_name[64];
-	snprintf(surface_name, sizeof(surface_name), "%s%d%d",
-			style->output, style->layer, style->anchor);
-
-	struct mako_surface_config *surface;
-	wl_list_for_each(surface, &config->surfaces, link) {
-		if (!strcmp(surface->name, surface_name)) {
-			return 0;
-		}
-	}
-
-	surface = calloc(1, sizeof(*surface));
-
-	wl_list_insert(&config->surfaces, &surface->link);
-	surface->name = strdup(surface_name);
-	surface->output = strdup(style->output);
-	surface->layer = style->layer;
-	surface->anchor = style->anchor;
-	surface->max_visible = style->max_visible;
-
-	return 0;
-}
-
-static int build_surface_configs(struct mako_config *config,
-		struct mako_style *style, struct mako_criteria *criteria)
-{
-	struct mako_criteria *next =
-		wl_container_of(criteria->link.next, criteria, link);
-	// Stop condition!
-	if (&criteria->link == &config->criteria) {
-		return build_surface_config_final(config, style);
-	}
-
-	struct mako_style applied;
-	memset(&applied, 0, sizeof(applied));
-	// First make a copy of the passed in style
-	apply_style(&applied, style);
-	// Then apply our current one
-	apply_style(&applied, &criteria->style);
-
-	// Build the surface that might show up if we apply this style
-	build_surface_configs(config, &applied, next);
-	// Build the surface that might show up if we do not apply this style
-	build_surface_configs(config, style, next);
-
-	finish_style(&applied);
-	return 0;
-}
-
-static int build_surface_config(struct mako_config *config)
-{
-	struct mako_criteria *criteria =
-		wl_container_of(config->criteria.next, criteria, link);
-	struct mako_style style;
-
-	init_default_style(&style);
-	build_surface_configs(config, &style, criteria);
-	finish_style(&style);
-	return 0;
-}
-
 int parse_config_arguments(struct mako_config *config, int argc, char **argv) {
 	static const struct option long_options[] = {
 		{"help", no_argument, 0, 'h'},
@@ -927,7 +884,7 @@ int parse_config_arguments(struct mako_config *config, int argc, char **argv) {
 		}
 	}
 
-	return build_surface_config(config);
+	return 0;
 }
 
 // Returns zero on success, negative on error, positive if we should exit

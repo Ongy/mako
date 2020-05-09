@@ -248,26 +248,9 @@ static int handle_list_notifications(sd_bus_message *msg, void *data,
  *    Configs that have a config (i.e. are still in use) are scheduled for redraw.
  */
 static void reapply_config(struct mako_state *state) {
-	struct mako_surface *surface;
-	wl_list_for_each(surface, &state->surfaces, link) {
-		surface->config = NULL;
-	}
-
-	struct mako_surface_config *surface_config;
-	wl_list_for_each(surface_config, &state->config.surfaces, link) {
-		bool found = false;
-		wl_list_for_each(surface, &state->surfaces, link) {
-			if (!strcmp(surface_config->name, surface->name)) {
-				found = true;
-				surface->config = surface_config;
-				break;
-			}
-		}
-		if (found) {
-			continue;
-		}
-
-		create_surface(state, surface_config);
+	struct mako_surface *surface, *tmp;
+	wl_list_for_each_safe(surface, tmp, &state->surfaces, link) {
+		destroy_surface(surface);
 	}
 
 	struct mako_notification *notif;
@@ -294,14 +277,8 @@ static void reapply_config(struct mako_state *state) {
 		free(notif_criteria);
 	}
 
-	struct mako_surface *tmp;
-	wl_list_for_each_safe(surface, tmp, &state->surfaces, link) {
-		if (!surface->config) {
-			/* Ok, tear down the surface! */
-			destroy_surface(surface);
-		} else {
-			set_dirty(surface);
-		}
+	wl_list_for_each(surface, &state->surfaces, link) {
+		set_dirty(surface);
 	}
 }
 

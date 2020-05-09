@@ -118,4 +118,9 @@ int reload_config(struct mako_config *config, int argc, char **argv);
 bool apply_global_option(struct mako_config *config, const char *name,
 	const char *value);
 
+struct mako_surface_config *create_configured_surface_config(
+		struct mako_config *config, int32_t max_visible,
+		char *output, enum zwlr_layer_shell_v1_layer layer,
+		uint32_t anchor, const char *name);
+
 #endif
