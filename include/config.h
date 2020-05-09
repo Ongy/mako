@@ -74,19 +74,8 @@ struct mako_style {
 	uint32_t anchor;
 };
 
-struct mako_surface_config {
-	struct wl_list link;
-
-	char *name;
-	int32_t max_visible;
-	char *output;
-	enum zwlr_layer_shell_v1_layer layer;
-	uint32_t anchor;
-};
-
 struct mako_config {
 	struct wl_list criteria; // mako_criteria::link
-	struct wl_list surfaces; // mako_surface_config::link
 
 	uint32_t sort_criteria; //enum mako_sort_criteria
 	uint32_t sort_asc;
@@ -117,10 +106,5 @@ int load_config_file(struct mako_config *config, char *config_arg);
 int reload_config(struct mako_config *config, int argc, char **argv);
 bool apply_global_option(struct mako_config *config, const char *name,
 	const char *value);
-
-struct mako_surface_config *create_configured_surface_config(
-		struct mako_config *config, int32_t max_visible,
-		char *output, enum zwlr_layer_shell_v1_layer layer,
-		uint32_t anchor, const char *name);
 
 #endif

@@ -104,7 +104,7 @@ static int render_notification(cairo_t *cairo, struct mako_state *state, struct 
 		(style->width <= surface->width) ? style->width : surface->width;
 
 	int offset_x;
-	if (surface->config->anchor & ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT) {
+	if (surface->anchor & ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT) {
 		offset_x = surface->width - notif_width - style->margin.right;
 	} else {
 		offset_x = style->margin.left;
@@ -260,7 +260,6 @@ static int render_notification(cairo_t *cairo, struct mako_state *state, struct 
 
 int render(struct mako_state *state, struct mako_surface *surface, struct pool_buffer *buffer, int scale) {
 	struct mako_config *config = &state->config;
-	struct mako_surface_config *surface_config = surface->config;
 	cairo_t *cairo = buffer->cairo;
 	size_t count = 0;
 
@@ -286,8 +285,8 @@ int render(struct mako_state *state, struct mako_surface *surface, struct pool_b
 		}
 		++count;
 
-		if (surface_config->max_visible >= 0 &&
-				visible_count >= (size_t)surface_config->max_visible) {
+		if (surface->max_visible >= 0 &&
+				visible_count >= (size_t)surface->max_visible) {
 			continue;
 		}
 

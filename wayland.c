@@ -388,9 +388,10 @@ bool init_wayland(struct mako_state *state) {
 		wl_display_roundtrip(state->display);
 	}
 	if (state->xdg_output_manager == NULL) {
-		struct mako_surface *surface;
-		wl_list_for_each(surface, &state->surfaces, link) {
-			if (strcmp(surface->config->output, "") != 0) {
+		struct mako_criteria *criteria;
+		wl_list_for_each(criteria, &state->config.criteria, link) {
+			if (criteria->style.spec.output &&
+					strcmp(criteria->style.output, "") != 0) {
 				fprintf(stderr, "warning: configured an output "
 					"but compositor doesn't support "
 					"xdg-output-unstable-v1 version 2\n");
@@ -445,7 +446,7 @@ static struct wl_region *get_input_region(struct mako_surface *surface) {
 }
 
 static struct mako_output *get_configured_output(struct mako_surface *surface) {
-	const char *output_name = surface->config->output;
+	const char *output_name = surface->configured_output;
 	if (strcmp(output_name, "") == 0) {
 		return NULL;
 	}
@@ -520,7 +521,7 @@ static void send_frame(struct mako_surface *surface) {
 
 		surface->layer_surface = zwlr_layer_shell_v1_get_layer_surface(
 			state->layer_shell, surface->surface, wl_output,
-			surface->config->layer, "notifications");
+			surface->layer, "notifications");
 		zwlr_layer_surface_v1_add_listener(surface->layer_surface,
 			&layer_surface_listener, surface);
 
@@ -547,7 +548,7 @@ static void send_frame(struct mako_surface *surface) {
 				style->width + style->margin.left + style->margin.right,
 				height);
 		zwlr_layer_surface_v1_set_anchor(surface->layer_surface,
-				surface->config->anchor);
+				surface->anchor);
 		wl_surface_commit(surface->surface);
 
 		// Now we're going to bail without drawing anything. This gives the

@@ -338,24 +338,19 @@ ssize_t apply_each_criteria(struct wl_list *criteria_list,
 		}
 	}
 
-	char surface_name[64];
-	snprintf(surface_name, sizeof(surface_name), "%s%d%d",
-			notif->style.output, notif->style.layer, notif->style.anchor);
-
 	struct mako_surface *surface;
 	wl_list_for_each(surface, &notif->state->surfaces, link) {
-		if (!strcmp(surface->name, surface_name)) {
+		if (!strcmp(surface->configured_output, notif->style.output) &&
+				surface->anchor == notif->style.anchor &&
+				surface->layer == notif->style.layer) {
 			notif->surface = surface;
 			break;
 		}
 	}
 
 	if (!notif->surface) {
-		struct mako_surface_config *config =
-			create_configured_surface_config(&notif->state->config,
-			notif->style.max_visible, notif->style.output,
-			notif->style.layer, notif->style.anchor, surface_name);
-		notif->surface = create_surface(notif->state, config);
+		notif->surface = create_surface(notif->state, notif->style.output,
+			notif->style.layer, notif->style.anchor, notif->style.max_visible);
 	}
 
 	return match_count;

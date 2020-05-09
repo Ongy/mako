@@ -16,15 +16,11 @@
 #include "xdg-output-unstable-v1-client-protocol.h"
 
 struct mako_state;
-struct mako_surface_config;
 
 struct mako_surface {
 	struct wl_list link;
 
 	struct mako_state *state;
-	char *name;
-
-	struct mako_surface_config *config;
 
 	struct wl_surface *surface;
 	struct mako_output *surface_output;
@@ -34,6 +30,11 @@ struct mako_surface {
 	bool configured;
 	bool dirty; // Do we need to redraw?
 	int32_t scale;
+
+	char *configured_output;
+	enum zwlr_layer_shell_v1_layer layer;
+	uint32_t anchor;
+	int32_t max_visible;
 
 	int32_t width, height;
 	struct pool_buffer buffers[2];

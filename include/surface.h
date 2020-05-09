@@ -5,9 +5,9 @@
 
 struct mako_state;
 struct mako_surface;
-struct mako_surface_config;
 
 void destroy_surface(struct mako_surface *surface);
-struct mako_surface *create_surface(struct mako_state *state,
-		struct mako_surface_config *config);
+struct mako_surface *create_surface(struct mako_state *state, const char *output,
+		enum zwlr_layer_shell_v1_layer layer, uint32_t anchor,
+		int32_t max_visible);
 #endif

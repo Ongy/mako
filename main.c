@@ -90,16 +90,6 @@ static void finish(struct mako_state *state) {
 	finish_dbus(state);
 }
 
-static void init_surfaces(struct mako_state *state)
-{
-	wl_list_init(&state->surfaces);
-	struct mako_surface_config *config;
-	wl_list_for_each(config, &state->config.surfaces, link) {
-		/* We don't need the return value right now */
-		create_surface(state, config);
-	}
-}
-
 static struct mako_event_loop *event_loop = NULL;
 
 int main(int argc, char *argv[]) {
@@ -107,6 +97,8 @@ int main(int argc, char *argv[]) {
 
 	state.argc = argc;
 	state.argv = argv;
+
+	wl_list_init(&state.surfaces);
 
 	// This is a bit wasteful, but easier than special-casing the reload.
 	init_default_config(&state.config);
@@ -125,8 +117,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	event_loop = &state.event_loop;
-
-	init_surfaces(&state);
 
 	ret = run_event_loop(&state.event_loop);
 

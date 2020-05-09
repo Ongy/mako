@@ -13,55 +13,13 @@
 #include "criteria.h"
 #include "types.h"
 
-static struct mako_surface_config *create_surface_config(
-		struct mako_config *config) {
-	struct mako_surface_config *ret = calloc(1, sizeof(*ret));
-	if (!ret) {
-		return NULL;
-	}
-
-	wl_list_insert(config->surfaces.prev, &ret->link);
-
-	ret->output = strdup("");
-	ret->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-	ret->max_visible = 5;
-
-	ret->anchor =
-		ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-
-	return ret;
-}
-
-struct mako_surface_config *create_configured_surface_config(
-		struct mako_config *config, int32_t max_visible,
-		char *output, enum zwlr_layer_shell_v1_layer layer,
-		uint32_t anchor, const char *name)
-{
-	struct mako_surface_config *ret = create_surface_config(config);
-	if (!ret) {
-		return NULL;
-	}
-
-	free(ret->output);
-	free(ret->name);
-	ret->max_visible = max_visible;
-	ret->output = strdup(output);
-	ret->layer = layer;
-	ret->anchor = anchor;
-	ret->name = strdup(name);
-
-	return ret;
-}
-
 static int32_t max(int32_t a, int32_t b) {
 	return (a > b) ? a : b;
 }
 
 void init_default_config(struct mako_config *config) {
 	wl_list_init(&config->criteria);
-	wl_list_init(&config->surfaces);
 	struct mako_criteria *new_criteria = create_criteria(config);
-	struct mako_surface_config *new_surface = create_surface_config(config);
 	init_default_style(&new_criteria->style);
 	new_criteria->raw_string = strdup("(root)");
 
@@ -92,9 +50,6 @@ void init_default_config(struct mako_config *config) {
 	config->hidden_style.format = strdup("(%h more)");
 	config->hidden_style.spec.format = true;
 
-	new_surface->name = strdup("(root)");
-
-	new_surface->max_visible = 5;
 	config->max_history = 5;
 	config->sort_criteria = MAKO_SORT_CRITERIA_TIME;
 	config->sort_asc = 0;
@@ -105,14 +60,6 @@ void init_default_config(struct mako_config *config) {
 	config->touch = MAKO_BINDING_DISMISS;
 }
 
-static void destroy_surface_config(struct mako_surface_config *surface) {
-	wl_list_remove(&surface->link);
-	free(surface->output);
-	free(surface->name);
-
-	free(surface);
-}
-
 void finish_config(struct mako_config *config) {
 	struct mako_criteria *criteria, *tmp;
 	wl_list_for_each_safe(criteria, tmp, &config->criteria, link) {
@@ -121,11 +68,6 @@ void finish_config(struct mako_config *config) {
 
 	finish_style(&config->superstyle);
 	finish_style(&config->hidden_style);
-
-	struct mako_surface_config *surface, *stmp;
-	wl_list_for_each_safe(surface, stmp, &config->surfaces, link) {
-		destroy_surface_config(surface);
-	}
 }
 
 void init_default_style(struct mako_style *style) {
@@ -914,9 +856,6 @@ int reload_config(struct mako_config *config, int argc, char **argv) {
 	// criteria struct.
 	wl_list_init(&config->criteria);
 	wl_list_insert_list(&config->criteria, &new_config.criteria);
-
-	wl_list_init(&config->surfaces);
-	wl_list_insert_list(&config->surfaces, &new_config.surfaces);
 
 	return 0;
 }
