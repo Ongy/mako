@@ -591,10 +591,7 @@ static bool apply_style_option(struct mako_style *style, const char *name,
 			style->padding.right = max(style->border_radius, style->padding.right);
 		}
 		return spec->border_radius;
-	} /*else if (strcmp(name, "surface") == 0) {
-		free(style->surface);
-		return spec->surface = !!(style->surface = strdup(value));
-	} */
+	}
 
 	return false;
 }

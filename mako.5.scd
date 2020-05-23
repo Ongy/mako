@@ -29,38 +29,6 @@ Empty lines and lines that begin with # are ignored.
 
 	Default: -time
 
-# SURFACE OPTIONS
-
-*max-visible* = _n_
-	Set maximum number of visible notifications to _n_. Older notifications will
-	be hidden. If -1, all notifications are visible.
-
-	Default: 5
-
-*output* = _name_
-	Show notifications on the specified output. If empty, notifications will
-	appear on the focused output.
-
-	Requires the compositor to support the Wayland protocol
-	xdg-output-unstable-v1 version 2.
-
-	Default: ""
-
-*layer* = _layer_
-	Arrange mako at the specified layer, relative to normal windows. Supported
-	values are _background_, _bottom_, _top_, and _overlay_. Using _overlay_
-	will cause notifications to be displayed above fullscreen windows, though
-	this may also occur at _top_ depending on your compositor.
-
-	Default: top
-
-*anchor* = _position_
-	Show notifications at the specified position on the output. Supported values
-	are _top-right_, _top-center_, _top-left_, _bottom-right_, _bottom-center_,
-	_bottom-left_, and _center_.
-
-	Default: top-right
-
 # BUTTON AND TOUCH BINDINGS
 
 Specify the action to take per button or touch event. Supported values are
@@ -212,6 +180,36 @@ _none_, _dismiss_, _dismiss-all_, _dismiss-group_, _invoke-default-action_,
 
 	Default: none
 
+*max-visible* = _n_
+	Set maximum number of visible notifications to _n_. Older notifications will
+	be hidden. If -1, all notifications are visible.
+
+	Default: 5
+
+*output* = _name_
+	Show notifications on the specified output. If empty, notifications will
+	appear on the focused output.
+
+	Requires the compositor to support the Wayland protocol
+	xdg-output-unstable-v1 version 2.
+
+	Default: ""
+
+*layer* = _layer_
+	Arrange mako at the specified layer, relative to normal windows. Supported
+	values are _background_, _bottom_, _top_, and _overlay_. Using _overlay_
+	will cause notifications to be displayed above fullscreen windows, though
+	this may also occur at _top_ depending on your compositor.
+
+	Default: top
+
+*anchor* = _position_
+	Show notifications at the specified position on the output. Supported values
+	are _top-right_, _top-center_, _top-left_, _bottom-right_, _bottom-center_,
+	_bottom-left_, and _center_.
+
+	Default: top-right
+
 # CRITERIA
 
 In addition to the set of options at the top of the file, the config file may
@@ -299,20 +297,6 @@ associated command-line option.
 
 	Default: ""
 
-# SURFACES
-
-In addition to the set of options at the top of the file, the config file may
-contain zero or more sections, each containing any combination of the
-*SURFACE OPTIONS*. The sections, called surfaces, are defined with a squiggly
-square bracket syntax. The brackets contain the name of the surface:
-
-	\{internal\}
-
-When a notification is received, during style computation, the surface for the
-notification is computed as well. If there's no valid surface configured, the
-default surface is chosen. The default surface can be configured by using any
-*SURFACE OPTIONS* before a surface section is openend.
-
 # COLORS
 
 Colors can be specified as _#RRGGBB_ or _#RRGGBBAA_.
@@ -367,22 +351,6 @@ specifiers.
 Maintained by Simon Ser <contact@emersion.fr>, who is assisted by other
 open-source contributors. For more information about mako development, see
 https://github.com/emersion/mako.
-
-# EXAMPLES
-
-## Configuration with system settings placed onto their own surface
-
-\{system\}++
-anchor=bottom-center++
-++
-\[category=system\]++
-surface=system++
-background-color=#28557780++
-margin=0,0,250++
-width=120++
-text-color=#efefef++
-border-radius=20
-
 
 # SEE ALSO
 

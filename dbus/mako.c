@@ -238,14 +238,10 @@ static int handle_list_notifications(sd_bus_message *msg, void *data,
 
 /**
  * The way surfaces are re-build here is not quite intuitive.
- * 1. We set the surface->config pointers to NULL
- *    The previously pointed to values got free()ed before!
- * 2. We iterate the new surface configs. Set the existing surfaces' config
- *    pointers to our current configuration and create new surfaces when necessary.
- * 3. We apply configurations to existing notifications.
- * 4. We iterate surfaces again. Here we check for surfaces that don't have a
- *    config set (surface->config == NULL), those can be discarded.
- *    Configs that have a config (i.e. are still in use) are scheduled for redraw.
+ * 1. All surfaces are destroyed.
+ * 2. The styles and surface association of notifications is recomputed.
+ *    This will also (re)create all surfaces we need in the new config.
+ * 3. Start the redraw events.
  */
 static void reapply_config(struct mako_state *state) {
 	struct mako_surface *surface, *tmp;
