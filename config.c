@@ -409,58 +409,6 @@ bool apply_superset_style(
 	return true;
 }
 
-static bool apply_surface_option(struct mako_style *surface,
-		const char *name, const char *value) {
-	if (strcmp(name, "max-visible") == 0) {
-		return surface->spec.max_visible = parse_int(value, &surface->max_visible);
-	} else if (strcmp(name, "output") == 0) {
-		free(surface->output);
-		surface->output = strdup(value);
-		surface->spec.output = true;
-		return true;
-	} else if (strcmp(name, "layer") == 0) {
-		if (strcmp(value, "background") == 0) {
-			surface->layer = ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND;
-		} else if (strcmp(value, "bottom") == 0) {
-			surface->layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
-		} else if (strcmp(value, "top") == 0) {
-			surface->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
-		} else if (strcmp(value, "overlay") == 0) {
-			surface->layer = ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
-		} else {
-			return false;
-		}
-		surface->spec.layer = true;
-		return true;
-	} else if (strcmp(name, "anchor") == 0) {
-		if (strcmp(value, "top-right") == 0) {
-			surface->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-		} else if (strcmp(value, "top-center") == 0) {
-			surface->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
-		} else if (strcmp(value, "top-left") == 0) {
-			surface->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT;
-		} else if (strcmp(value, "bottom-right") == 0) {
-			surface->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-		} else if (strcmp(value, "bottom-center") == 0) {
-			surface->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
-		} else if (strcmp(value, "bottom-left") == 0) {
-			surface->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT;
-		} else if (strcmp(value, "center") == 0) {
-			surface->anchor = 0;
-		} else {
-			return false;
-		}
-		surface->spec.anchor = true;
-		return true;
-	}
-
-	return false;
-}
-
 static bool apply_config_option(struct mako_config *config, const char *name,
 		const char *value) {
 
@@ -591,6 +539,51 @@ static bool apply_style_option(struct mako_style *style, const char *name,
 			style->padding.right = max(style->border_radius, style->padding.right);
 		}
 		return spec->border_radius;
+	} else if (strcmp(name, "max-visible") == 0) {
+		return style->spec.max_visible = parse_int(value, &style->max_visible);
+	} else if (strcmp(name, "output") == 0) {
+		free(style->output);
+		style->output = strdup(value);
+		style->spec.output = true;
+		return true;
+	} else if (strcmp(name, "layer") == 0) {
+		if (strcmp(value, "background") == 0) {
+			style->layer = ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND;
+		} else if (strcmp(value, "bottom") == 0) {
+			style->layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
+		} else if (strcmp(value, "top") == 0) {
+			style->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+		} else if (strcmp(value, "overlay") == 0) {
+			style->layer = ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
+		} else {
+			return false;
+		}
+		style->spec.layer = true;
+		return true;
+	} else if (strcmp(name, "anchor") == 0) {
+		if (strcmp(value, "top-right") == 0) {
+			style->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
+				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+		} else if (strcmp(value, "top-center") == 0) {
+			style->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
+		} else if (strcmp(value, "top-left") == 0) {
+			style->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
+				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT;
+		} else if (strcmp(value, "bottom-right") == 0) {
+			style->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
+				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+		} else if (strcmp(value, "bottom-center") == 0) {
+			style->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
+		} else if (strcmp(value, "bottom-left") == 0) {
+			style->anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
+				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT;
+		} else if (strcmp(value, "center") == 0) {
+			style->anchor = 0;
+		} else {
+			return false;
+		}
+		style->spec.anchor = true;
+		return true;
 	}
 
 	return false;
@@ -719,10 +712,6 @@ int load_config_file(struct mako_config *config, char *config_arg) {
 		}
 
 		valid_option = apply_style_option(target_style, line, eq + 1);
-
-		if (!valid_option) {
-			valid_option = apply_surface_option(target_style, line, eq + 1);
-		}
 
 		if (!valid_option && section == NULL) {
 			valid_option = apply_config_option(config, line, eq + 1);
